@@ -1,4 +1,3 @@
-import os
 import asyncio
 import random
 import time
@@ -7,9 +6,7 @@ from telegram import Update
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes
 from collections import defaultdict
 
-# إعدادات البوت
-BOT_TOKEN = os.environ.get("BOT_TOKEN", "8445989265:AAE73bRecYTD8QLBnLNn7kgb7P2hxhp4CNQ")
-TARGET_BOT_USERNAME = "NKKKKKL_BOT"
+BOT_TOKEN = "8445989265:AAE73bRecYTD8QLBnLNn7kgb7P2hxhp4CNQ"
 
 speed_tasks = {}
 speed_enabled = defaultdict(bool)
@@ -56,11 +53,11 @@ class SpeedBot:
             if speed_enabled[chat_id] and message:
                 elapsed = time.time() - start_time
                 wpm = (len(parts) / elapsed) * 60 if elapsed > 0 else 0
-                final = f"{current_text}\n\n⚡ Speed: {wpm:.1f} WPM"
+                final = f"{current_text}\n\nسرعة: {wpm:.1f}"
                 await message.edit_text(final)
             
         except Exception as e:
-            print(f"Error: {e}")
+            print(f"خطأ: {e}")
 
 speed_bot = SpeedBot()
 
@@ -71,21 +68,19 @@ async def handle_messages(update: Update, context: ContextTypes.DEFAULT_TYPE):
             return
         
         chat_id = message.chat_id
+        sentence = message.text.strip()
         
-        if message.from_user and message.from_user.username:
-            if message.from_user.username.lower() == TARGET_BOT_USERNAME.lower():
-                sentence = message.text.strip()
-                if speed_enabled[chat_id] and speed_bot.is_speed_sentence(sentence):
-                    task_key = str(chat_id)
-                    old_task = speed_tasks.get(task_key)
-                    if old_task:
-                        old_task.cancel()
-                    
-                    wpm = speed_bot.calculate_typing_speed()
-                    task = asyncio.create_task(
-                        speed_bot.speed_type_sentence(context, chat_id, sentence, wpm, time.time())
-                    )
-                    speed_tasks[task_key] = task
+        if speed_enabled[chat_id] and speed_bot.is_speed_sentence(sentence):
+            task_key = str(chat_id)
+            old_task = speed_tasks.get(task_key)
+            if old_task:
+                old_task.cancel()
+            
+            wpm = speed_bot.calculate_typing_speed()
+            task = asyncio.create_task(
+                speed_bot.speed_type_sentence(context, chat_id, sentence, wpm, time.time())
+            )
+            speed_tasks[task_key] = task
                     
     except:
         pass
@@ -93,7 +88,7 @@ async def handle_messages(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def start_speed(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_id = update.message.chat_id
     speed_enabled[chat_id] = True
-    await update.message.reply_text(f"🚀 Speed activated! Tracking @{TARGET_BOT_USERNAME}")
+    await update.message.reply_text("🚀 تم تشغيل السبيد")
 
 async def stop_speed(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_id = update.message.chat_id
@@ -101,10 +96,10 @@ async def stop_speed(update: Update, context: ContextTypes.DEFAULT_TYPE):
     task_key = str(chat_id)
     if task_key in speed_tasks:
         speed_tasks[task_key].cancel()
-    await update.message.reply_text("⏹️ Speed stopped!")
+    await update.message.reply_text("⏹️ تم إيقاف السبيد")
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text(f"🤖 Speed Bot\nTracking: @{TARGET_BOT_USERNAME}\n\n/speed - Start\n/speed stop - Stop")
+    await update.message.reply_text("اكتب /سبيد لتشغيل السبيد")
 
 def main():
     app = Application.builder().token(BOT_TOKEN).build()
@@ -115,7 +110,7 @@ def main():
     app.add_handler(MessageHandler(filters.Regex(r'^(speed stop|سبيد وقف)$'), stop_speed))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_messages))
     
-    print("✅ Bot running on Railway!")
+    print("البوت شغال")
     app.run_polling()
 
 if __name__ == "__main__":
